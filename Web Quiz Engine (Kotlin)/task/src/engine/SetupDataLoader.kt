@@ -1,6 +1,5 @@
 package engine
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import engine.model.Quiz
 import engine.service.QuizService
 import org.springframework.context.ApplicationListener
@@ -17,17 +16,7 @@ class SetupDataLoader(
     @Transactional
     override fun onApplicationEvent(event: ContextRefreshedEvent) {
         if (alreadySetup) return
-        val quiz = ObjectMapper().readValue(
-            """
-            {
-              "title": "The Java Logo",
-              "text": "What is depicted on the Java logo?",
-              "options": ["Robot","Tea leaf","Cup of coffee","Bug"],
-              "answer": [2]
-            }
-            """.trimIndent(), Quiz::class.java
-        )
-        quizService.save(quiz)
+
         alreadySetup = true
     }
 }

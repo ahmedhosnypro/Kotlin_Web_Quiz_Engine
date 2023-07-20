@@ -135,44 +135,6 @@ files:
         var answer: MutableList<Int>? = null
     )
   learner_created: false
-- name: src/engine/controller/QuizController.kt
-  visible: true
-  text: |-
-    package engine.controller
-
-    import engine.model.AnswerDTO
-    import engine.service.QuizService
-    import org.springframework.http.ResponseEntity
-    import org.springframework.validation.annotation.Validated
-    import org.springframework.web.bind.annotation.GetMapping
-    import org.springframework.web.bind.annotation.PostMapping
-    import org.springframework.web.bind.annotation.RequestMapping
-    import org.springframework.web.bind.annotation.RequestParam
-    import org.springframework.web.bind.annotation.RestController
-    import javax.validation.constraints.NotNull
-    import javax.validation.constraints.PositiveOrZero
-
-
-    @RestController
-    @Validated
-    @RequestMapping("/api/quiz")
-    class QuizController (
-        private val quizService: QuizService
-    ){
-        @GetMapping("")
-        fun getQuiz(): ResponseEntity<Any>{
-            return ResponseEntity.ok().body(quizService.findById(1))
-        }
-
-        @PostMapping("")
-        fun solve(@RequestParam @NotNull @PositiveOrZero answer: Int): ResponseEntity<Any>{
-            if (answer == 2){
-                return ResponseEntity.ok().body(AnswerDTO(true, "Congratulations, you're right!"))
-            }
-            return ResponseEntity.ok().body(AnswerDTO())
-        }
-    }
-  learner_created: false
 - name: src/engine/dto/QuizDTO.kt
   visible: true
   text: |-
@@ -445,6 +407,50 @@ files:
         }
     }
   learner_created: false
+- name: src/engine/dto/NewQuizDTO.kt
+  visible: true
+  learner_created: true
+- name: src/engine/controller/QuizzesController.kt
+  visible: true
+  text: |-
+    package engine.controller
+
+    import engine.model.AnswerDTO
+    import engine.service.QuizService
+    import org.springframework.http.ResponseEntity
+    import org.springframework.validation.annotation.Validated
+    import org.springframework.web.bind.annotation.GetMapping
+    import org.springframework.web.bind.annotation.PostMapping
+    import org.springframework.web.bind.annotation.RequestMapping
+    import org.springframework.web.bind.annotation.RequestParam
+    import org.springframework.web.bind.annotation.RestController
+    import javax.validation.constraints.NotNull
+    import javax.validation.constraints.PositiveOrZero
+
+
+    @RestController
+    @Validated
+    @RequestMapping("/api/quiz")
+    class QuizController (
+        private val quizService: QuizService
+    ){
+        @GetMapping("")
+        fun getQuiz(): ResponseEntity<Any>{
+            return ResponseEntity.ok().body(quizService.findById(1))
+        }
+
+        @PostMapping("")
+        fun solve(@RequestParam @NotNull @PositiveOrZero answer: Int): ResponseEntity<Any>{
+            if (answer == 2){
+                return ResponseEntity.ok().body(AnswerDTO(true, "Congratulations, you're right!"))
+            }
+            return ResponseEntity.ok().body(AnswerDTO())
+        }
+    }
+  learner_created: false
 feedback_link: https://hyperskill.org/projects/316/stages/1774/implement#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: "Thu, 20 Jul 2023 14:22:56 UTC"
 record: -1
