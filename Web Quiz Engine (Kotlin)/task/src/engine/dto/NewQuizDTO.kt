@@ -2,16 +2,20 @@ package engine.dto
 
 import engine.model.Quiz
 import org.modelmapper.ModelMapper
+import javax.validation.constraints.NotBlank
+import javax.validation.constraints.NotEmpty
 
 class NewQuizDTO(
-    var title: String? = null,
-    var text: String? = null,
-    var options: List<String>? = null,
-    var answer: Int? = null,
+    @field:NotBlank var title: String,
+    @field:NotBlank var text: String,
+    @field:NotEmpty var options: List<String>,
+    var answer: Set<Int>?
 ) {
-    companion object{
+    companion object {
         fun toEntity(newQuizDTO: NewQuizDTO): Quiz = ModelMapper().map(newQuizDTO, Quiz::class.java).apply {
-            answer = mutableListOf(newQuizDTO.answer!!)
+            if (answer == null) {
+                answer = emptySet()
+            }
         }
     }
 }

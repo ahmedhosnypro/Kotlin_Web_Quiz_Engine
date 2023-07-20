@@ -8,6 +8,7 @@ import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.PositiveOrZero
 
@@ -35,19 +36,19 @@ class QuizzesController(
         return ResponseEntity.ok().body(QuizDTO.fromEntity(quiz))
     }
 
+    class AnswerDTO(@field:NotEmpty var answer: Set<Int>)
+
     @PostMapping("/{id}/solve")
     fun solve(
         @PathVariable @NotNull @PositiveOrZero id: Long,
-        @RequestParam @NotNull @PositiveOrZero answer: Int
+        @RequestBody @Valid answerDTO: AnswerDTO
     ): ResponseEntity<Any> {
         val quiz = quizService.findById(id) ?: return ResponseEntity.notFound().build()
-        if (quiz.answer == null){
-            return ResponseEntity.noContent().build()
-        }
 
-        if (quiz.answer!![0]  == answer) {
+        if (quiz.answer == answerDTO.answer) {
             return ResponseEntity.ok().body(AnswerDTO(true, "Congratulations, you're right!"))
         }
+
         return ResponseEntity.ok().body(AnswerDTO(false, "Wrong answer! Please, try again."))
     }
 }

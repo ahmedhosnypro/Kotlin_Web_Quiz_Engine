@@ -11,10 +11,10 @@ class Quiz(
 
     @ElementCollection
     @CollectionTable(name = "options", joinColumns = [JoinColumn(name = "id")])
-    @Column(name = "options", nullable = false) var options: MutableList<String>? = null,
+    @Column(name = "options", nullable = false) var options: List<String>? = null,
 
     @ElementCollection
     @CollectionTable(name = "answer", joinColumns = [JoinColumn(name = "id")])
     @Column(name = "answer")
-    var answer: MutableList<Int>? = null
+    var answer: Set<Int>? = null
 )

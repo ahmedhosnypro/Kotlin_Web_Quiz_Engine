@@ -111,68 +111,6 @@ files:
         }
     }
   learner_created: false
-- name: src/engine/model/Quiz.kt
-  visible: true
-  text: |-
-    package engine.model
-
-    import jakarta.persistence.*
-
-
-    @Entity
-    class Quiz(
-        @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id", nullable = false) var id: Long? = null,
-        @Column(name = "title", nullable = false) var title: String? = null,
-        @Column(name = "text", nullable = false) var text: String? = null,
-
-        @ElementCollection
-        @CollectionTable(name = "options", joinColumns = [JoinColumn(name = "id")])
-        @Column(name = "options", nullable = false) var options: MutableList<String>? = null,
-
-        @ElementCollection
-        @CollectionTable(name = "answer", joinColumns = [JoinColumn(name = "id")])
-        @Column(name = "answer")
-        var answer: MutableList<Int>? = null
-    )
-  learner_created: false
-- name: src/engine/controller/QuizController.kt
-  visible: true
-  text: |-
-    package engine.controller
-
-    import engine.model.AnswerDTO
-    import engine.service.QuizService
-    import org.springframework.http.ResponseEntity
-    import org.springframework.validation.annotation.Validated
-    import org.springframework.web.bind.annotation.GetMapping
-    import org.springframework.web.bind.annotation.PostMapping
-    import org.springframework.web.bind.annotation.RequestMapping
-    import org.springframework.web.bind.annotation.RequestParam
-    import org.springframework.web.bind.annotation.RestController
-    import javax.validation.constraints.NotNull
-    import javax.validation.constraints.PositiveOrZero
-
-
-    @RestController
-    @Validated
-    @RequestMapping("/api/quiz")
-    class QuizController (
-        private val quizService: QuizService
-    ){
-        @GetMapping("")
-        fun getQuiz(): ResponseEntity<Any>{
-            return ResponseEntity.ok().body(quizService.findById(1))
-        }
-
-        @PostMapping("")
-        fun solve(@RequestParam @NotNull @PositiveOrZero answer: Int): ResponseEntity<Any>{
-            if (answer == 2){
-                return ResponseEntity.ok().body(AnswerDTO(true, "Congratulations, you're right!"))
-            }
-            return ResponseEntity.ok().body(AnswerDTO())
-        }
-    }
-  learner_created: false
 - name: src/engine/dto/QuizDTO.kt
   visible: true
   text: |-
@@ -250,6 +188,30 @@ files:
         }
     }
   learner_created: false
+- name: src/engine/model/Quiz.kt
+  visible: true
+  text: |-
+    package engine.model
+
+    import jakarta.persistence.*
+
+
+    @Entity
+    class Quiz(
+        @Id @GeneratedValue(strategy = GenerationType.IDENTITY) @Column(name = "id", nullable = false) var id: Long? = null,
+        @Column(name = "title", nullable = false) var title: String? = null,
+        @Column(name = "text", nullable = false) var text: String? = null,
+
+        @ElementCollection
+        @CollectionTable(name = "options", joinColumns = [JoinColumn(name = "id")])
+        @Column(name = "options", nullable = false) var options: MutableList<String>? = null,
+
+        @ElementCollection
+        @CollectionTable(name = "answer", joinColumns = [JoinColumn(name = "id")])
+        @Column(name = "answer")
+        var answer: MutableList<Int>? = null
+    )
+  learner_created: false
 - name: src/engine/model/AnswerDTO.kt
   visible: true
   text: |-
@@ -260,6 +222,27 @@ files:
         var feedback: String = "Wrong answer! Please, try again."
     )
   learner_created: false
+- name: src/engine/dto/NewQuizDTO.kt
+  visible: true
+  text: |-
+    package engine.dto
+
+    import engine.model.Quiz
+    import org.modelmapper.ModelMapper
+
+    class NewQuizDTO(
+        var title: String? = null,
+        var text: String? = null,
+        var options: List<String>? = null,
+        var answer: Int? = null,
+    ) {
+        companion object{
+            fun toEntity(newQuizDTO: NewQuizDTO): Quiz = ModelMapper().map(newQuizDTO, Quiz::class.java).apply {
+                answer = mutableListOf(newQuizDTO.answer!!)
+            }
+        }
+    }
+  learner_created: true
 - name: test/WebQuizEngineTest.java
   visible: false
   text: |
@@ -651,6 +634,76 @@ files:
         }
     }
   learner_created: false
+- name: src/engine/controller/QuizzesController.kt
+  visible: true
+  text: |+
+    package engine.controller
+
+    import engine.dto.NewQuizDTO
+    import engine.dto.QuizDTO
+    import engine.model.AnswerDTO
+    import engine.service.QuizService
+    import jakarta.validation.Valid
+    import org.springframework.http.ResponseEntity
+    import org.springframework.validation.annotation.Validated
+    import org.springframework.web.bind.annotation.*
+    import javax.validation.constraints.NotNull
+    import javax.validation.constraints.PositiveOrZero
+
+
+    @RestController
+    @Validated
+    @RequestMapping("/api/quizzes")
+    class QuizzesController(
+        private val quizService: QuizService
+    ) {
+        @PostMapping
+        fun createQuiz(@RequestBody @Valid newQuizDTO: NewQuizDTO): ResponseEntity<Any> {
+            return ResponseEntity.ok().body(QuizDTO.fromEntity(quizService.save(NewQuizDTO.toEntity(newQuizDTO))))
+        }
+
+
+        @GetMapping("")
+        fun getAllQuizzes(): ResponseEntity<Any> {
+            return ResponseEntity.ok().body(quizService.findAll().map { QuizDTO.fromEntity(it) })
+        }
+
+        @GetMapping("/{id}")
+        fun getQuizById(@PathVariable id: Long): ResponseEntity<Any> {
+            val quiz = quizService.findById(id) ?: return ResponseEntity.notFound().build()
+            return ResponseEntity.ok().body(QuizDTO.fromEntity(quiz))
+        }
+
+        @PostMapping("/{id}/solve")
+        fun solve(
+            @PathVariable @NotNull @PositiveOrZero id: Long,
+            @RequestParam @NotNull @PositiveOrZero answer: Int
+        ): ResponseEntity<Any> {
+            val quiz = quizService.findById(id) ?: return ResponseEntity.notFound().build()
+            if (quiz.answer == null){
+                return ResponseEntity.noContent().build()
+            }
+
+            if (quiz.answer!![0]  == answer) {
+                return ResponseEntity.ok().body(AnswerDTO(true, "Congratulations, you're right!"))
+            }
+            return ResponseEntity.ok().body(AnswerDTO(false, "Wrong answer! Please, try again."))
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/316/stages/1775/implement#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: "Thu, 20 Jul 2023 15:23:59 UTC"
 record: -1
